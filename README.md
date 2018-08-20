@@ -1,1 +1,1 @@
-# CnCPP
+# Course Assignments
