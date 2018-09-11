@@ -13,8 +13,25 @@ class BigNum{
 	public:
 	struct Node* head;     // declaring head
 
+	BigNum(string s){
+		this->head = NULL; // constructor initialising head = NULL
+		long long int j =0;
+		for (j=0;s[j]=='0';j++);
+		for(long long int i=j;i<s.length();i++){ // making linked list
+			int d = s[i]-48;
+			this->head = insertNode(this->head,d);
+		}
+	}
 	BigNum(){
 		this->head = NULL; // constructor initialising head = NULL
+	}
+	~BigNum(){
+		struct Node* t;
+		while(head!=NULL){
+			t = head;
+			head = head->next;
+			free(t);
+		}
 	}
 
 	static struct Node* insertNode(struct Node* head ,int digit){   // insert node function
@@ -36,6 +53,8 @@ class BigNum{
 		struct Node* num1 = head1 ;
 		struct Node*  num2 = head2;
 		int carry = 0;  // carry forward
+		if(num1 == NULL && num2==NULL)
+			sum = insertNode(sum,0);
 		while(num1 != NULL || num2 != NULL){  // check while digits of both numbers are finished
 
 			int s =0;
@@ -61,13 +80,62 @@ class BigNum{
 			sum = insertNode(sum,carry);
 		return sum;
 	}
+	static long int len(struct Node * head){
+		struct Node* temp=head;
+		unsigned long int length =0;
+		while(temp!=NULL){
+			length++;
+			temp = temp->next;
+		}
+		return length;
+	}
 
 	BigNum operator + (BigNum const &obj) { // overloading + operator
 	    BigNum result;
 	    result.head = addNum(head,obj.head,result.head);
+	    struct Node* t ;
 	    return result;
 	}
 
+	bool operator >= (BigNum const &obj) { // overloading >= operator
+		long int l1 = len(head) , l2 = len(obj.head);
+		if(l1>l2)
+			return 1;
+		else if(l1<l2)
+			return 0;
+		else{
+           struct Node* temp=head;
+           struct Node* temp1 = obj.head;
+           while(temp->next!=NULL)
+           {
+           	temp=temp->next;
+           	temp1=temp1->next;
+           }
+           int flag=0;
+           
+           while(temp!=NULL){
+           		if(temp->digit>temp1->digit)
+           		{
+           			flag=1;
+           			break;
+           		}
+           		else if(temp->digit < temp1->digit)
+           		{
+           			flag =0;
+           			break;
+           		}
+           		else 
+           			flag=1;
+           		temp = temp->prev;
+           		temp1 = temp1->prev;
+           }
+           if(flag)
+				return 1;
+			else
+				return 0;
+		}
+    
+	}
 	friend ostream &operator<<(ostream &out, const BigNum &num){  // overloading cout operator
 		struct Node* temp = num.head;
 	    while(temp != NULL){
@@ -76,27 +144,16 @@ class BigNum{
 	}
 	    return out;
 	}
- 
-	friend istream &operator>>( istream  &input, BigNum &num ) { // overloading cin operator
-		string s;
-		input>>s;
-		long long int j =0;
-		for (j=0;s[j]=='0';j++);
-		for(long long int i=j;i<s.length();i++){
-			int d = s[i]-48;
-			num.head = insertNode(num.head,d);
-		}
-        return input;           
-      }
-
 };
 
 int main(){
 	while(!cin.eof()){ // read till end of input buffer
-	BigNum x,y;
+	string x,y;
 	cin>>x>>y;
-	cout<<x+y<<endl;
-}
-	
+	if (x!="" && y!=""){
+	BigNum n1(x);
+	BigNum n2(y);
+	cout<<(n1>=n2)<<endl;
+	}}
 	return 0;
 }

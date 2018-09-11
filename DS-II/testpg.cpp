@@ -52,14 +52,21 @@ string findSum(string str1, string str2)
  
 int main()
 {
-  random_device rd;
+  /*random_device rd;
   default_random_engine generator(rd());
 
-  uniform_int_distribution<long long unsigned> distribution(0,0xFFFFFFFFFFFFFFFF);
+  uniform_int_distribution<long long unsigned> distribution(0,0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF);
 
-  for (int i = 0; i < 10; i++) {
+  for (int i = 0; i < 10000; i++) {
       cout << distribution(generator) <<" "<<distribution(generator)<<endl;
-  }
+  }*/
+while(!cin.eof()){ // read till end of input buffer
+    string x,y;
+    cin>>x>>y;
+    if (x!="" && y!=""){
+    cout<<(x>=y)<<endl;
+    }
+}
 
   return 0;
 }
