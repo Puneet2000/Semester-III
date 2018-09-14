@@ -80,7 +80,7 @@ class BigNum{
 			sum = insertNode(sum,carry);
 		return sum;
 	}
-	static long int len(struct Node * head){
+	static long int len(struct Node * head){ // length of linked lists
 		struct Node* temp=head;
 		unsigned long int length =0;
 		while(temp!=NULL){
@@ -98,12 +98,12 @@ class BigNum{
 	}
 
 	bool operator >= (BigNum const &obj) { // overloading >= operator
-		long int l1 = len(head) , l2 = len(obj.head);
-		if(l1>l2)
+		long int l1 = len(head) , l2 = len(obj.head); // calculate length of linked lists
+		if(l1>l2)  // if first is greater return true
 			return 1;
 		else if(l1<l2)
 			return 0;
-		else{
+		else{           // if they are equal check if there is any MSD of first number greater than other
            struct Node* temp=head;
            struct Node* temp1 = obj.head;
            while(temp->next!=NULL)
@@ -111,20 +111,22 @@ class BigNum{
            	temp=temp->next;
            	temp1=temp1->next;
            }
+
+           // temp and temp1 stores last node of linked list i.e MSD
            int flag=0;
            
            while(temp!=NULL){
-           		if(temp->digit>temp1->digit)
+           		if(temp->digit>temp1->digit)  // if digit of first number is greater tha other break and return 1
            		{
            			flag=1;
            			break;
            		}
-           		else if(temp->digit < temp1->digit)
+           		else if(temp->digit < temp1->digit)  // if digit of first Num is less than second , break and return 0;
            		{
            			flag =0;
            			break;
            		}
-           		else 
+           		else // Do nothing when they are equal keep flag = 1
            			flag=1;
            		temp = temp->prev;
            		temp1 = temp1->prev;
