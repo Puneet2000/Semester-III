@@ -48,20 +48,25 @@ class BigNum{
 			return newnode;       // head always store LSB
 	}
 
-	static long int len(struct Node * head){ // length of linked lists
-		struct Node* temp=head;
-		unsigned long int length =0;
-		while(temp!=NULL){
-			length++;
-			temp = temp->next;
+	static int comparelength(struct Node* head1 , struct Node* head2){
+		struct Node* temp1=head1;
+		struct Node*  temp2=head2;
+		while(temp1!=NULL && temp2!=NULL){
+			temp1 = temp1->next;
+			temp2 = temp2->next;
 		}
-		return length;
+		if(temp1==NULL && temp2!=NULL)
+			return 2;
+		else if(temp1!=NULL && temp2==NULL)
+			return 1;
+		else
+			return 0;
 	}
 	bool operator >= (BigNum const &obj) { // overloading >= operator
-		long int l1 = len(head) , l2 = len(obj.head); // calculate length of linked lists
-		if(l1>l2)  // if first is greater return true
+		int l1 = comparelength(head,obj.head); // calculate length of linked lists
+		if(l1==1)  // if first is greater return true
 			return 1;
-		else if(l1<l2)
+		else if(l1==2)
 			return 0;
 		else{           // if they are equal check if there is any MSD of first number greater than other
            struct Node* temp=head;
@@ -97,8 +102,8 @@ class BigNum{
 		}    
 	}
 	bool operator == (BigNum const &obj) { // overloading == operator
-		long int l1 = len(head) , l2 = len(obj.head); // calculate length of linked lists
-		if(l1!=l2)  // if length not equal return false
+		int l1 = comparelength(head,obj.head); // calculate length of linked lists
+		if(l1!=0)  // if length not equal return false
 			return 0;
 		else{ // check for each digit if they are same or not
 			int flag=1;
@@ -169,12 +174,17 @@ struct BSTNode* insertBST(struct BSTNode* root, BigNum* value,struct BSTNode* pa
 }
 
 void preorder(struct BSTNode* root){  // preorder traversal VLR
-	if (root==NULL){
+	if(root==NULL)
 		return;
+	cout<<*(root->value);
+	if(root->left != NULL){
+		cout<<" ";
+		preorder(root->left);
 	}
-	cout<<*(root->value)<<" ";
-	preorder(root->left);
-	preorder(root->right);
+	if(root->right !=NULL){	
+		cout<<" ";
+		preorder(root->right);
+	}
 }
 
 string search(struct BSTNode* root,BigNum* key,string bit){  // search a key
