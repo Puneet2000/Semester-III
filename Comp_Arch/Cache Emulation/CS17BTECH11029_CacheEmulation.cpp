@@ -24,7 +24,6 @@ public:
 	void addBlock(string s){
 		if(set.size()==size){  // evict one block according to policy
 			if(policy=="OPTIMAL"){ // if policy is optimal
-				cout<<"optimal"<<endl;
 				vector<string>::iterator it;
 				vector<string>::iterator farit=set.begin();
 				multimap<string,int>::iterator mapit;
@@ -64,7 +63,7 @@ public:
 		return false;		
 	}
 
-	void countMisses(string addressFile){
+	void countMisses(char addressFile[]){
 		ifstream infile;
 		infile.open(addressFile);
 		string word;
@@ -99,7 +98,7 @@ public:
     	infile.close();
 	}
 
-	void write(string addressFile , string outFile){
+	void write(char addressFile[] , char outFile[]){
 		ofstream outfile;
 		outfile.open(outFile);
 		string word;
@@ -127,9 +126,16 @@ int main(int argc, char **argv){
 	string policy = argv[1];
 	string addressFile = argv[2]; // commandline args
 	int cacheEnteries = atoi(argv[3]);
-	cout<<cacheEnteries;
 	string outFile = ROLL_NO+"_"+policy+"_"+outFileName(addressFile)+"_"+argv[3]+".out";	 // final output file
+
+	char inputfile [addressFile.size()+1];
+	addressFile.copy(inputfile,addressFile.size()+1);
+	inputfile[addressFile.size()]='\0';
+	char outputfile[outFile.size()+1];
+	outFile.copy(outputfile,outFile.size()+1);
+	outputfile[outFile.size()]='\0';
+
 	Cache cache(cacheEnteries,policy);
-	cache.write(addressFile,outFile);
+	cache.write(inputfile,outputfile);
 	return 0;
 }
