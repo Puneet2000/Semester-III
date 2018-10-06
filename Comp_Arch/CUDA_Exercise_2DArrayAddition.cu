@@ -21,8 +21,6 @@ Do not change the name of any variable that we have introduced.
 
 #include <stdio.h>
 
-
-
 //TODO: WRITE GPU KERNEL. It should not be called repeatedly from the host, but just once. Each time it is called, it may process more than array-element or not process any array-element at all. 
 __global__ void MatrixAddition(int *A, int *B , int *C )
 {
@@ -31,6 +29,7 @@ __global__ void MatrixAddition(int *A, int *B , int *C )
 		op_per_thread +=1;
 
 	int thread_index = threadIdx.x + blockIdx.x*blockDim.x;
+  printf("%d",blockDim.x);
 	for(int i=0;i<op_per_thread;i++){
 		int index = thread_index*op_per_thread + i;
 		if(index < N*N)
@@ -83,7 +82,7 @@ int main (int argc, char **argv) {
         //print only those elements for which the above subtraction is non-zero
     int diff = C[i][j] - *(h_C + N*i +j);
     if(diff!=0)
-    	printf("error at %d %d\n",i,j);
+    	printf("error at %d and %d\n",C[i][j],*(h_C + N*i +j));
     }
    }
     //IF even one element of h_C and C differ, report an error.

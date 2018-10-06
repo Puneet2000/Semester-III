@@ -80,17 +80,27 @@ struct Node* deleteNode(struct Node* root,int key){
 	struct Node* keynode = search(root,key);
 	if (keynode == NULL)
 	{
-		cout<<"Element not found in BST\n";
 	}
 	else if(keynode->left ==NULL && keynode->right ==NULL){ // no children delete Node
+		if(keynode->parent==NULL){
+			free(root);
+			root = NULL;
+		}
+		else {
 		if(keynode == keynode->parent->left)
 			keynode->parent->left = NULL;
 		else
 			keynode->parent->right = NULL;
-
 		free(keynode);
 	}
+	}
 	else if (keynode->right !=NULL && keynode->left ==NULL){ // one children merge
+		if (keynode->parent == NULL){
+			keynode->right->parent = NULL;
+			free(root);
+			root = keynode->right;
+		}
+		else{
 		if(keynode == keynode->parent->left)
 			keynode->parent->left = keynode->right;
 		else
@@ -98,7 +108,14 @@ struct Node* deleteNode(struct Node* root,int key){
 		keynode->right->parent = keynode->parent;
 		free(keynode);
 	}
+	}
 	else if (keynode->left !=NULL && keynode->right ==NULL){ // one children merge
+		if (keynode->parent == NULL){
+			keynode->left->parent = NULL;
+			free(root);
+			root = keynode->left;
+		}
+		else {
 		if(keynode == keynode->parent->left)
 			keynode->parent->left = keynode->left;
 		else
@@ -106,8 +123,9 @@ struct Node* deleteNode(struct Node* root,int key){
 		keynode->right->parent = keynode->parent;
 		free(keynode);
 	}
+	}
 	else {
-	struct Node* min = findMin(keynode->right); // find minimum
+	struct Node* min = findMin(keynode->right); // find minimum using succesor
 	int val = min->value; 
 	root =deleteNode(root,val);
 	keynode->value = val;
@@ -117,7 +135,7 @@ struct Node* deleteNode(struct Node* root,int key){
 
 struct Node* successor(struct Node* root,int key){
 	struct Node* keynode = search(root,key);
-	if (keynode == NULL)
+	if (keynode == NULL)  // insert node , find succesor and then delete
 	{
 		insert(root,key,NULL);
 		struct Node* succ = successor(root,key);
@@ -125,12 +143,12 @@ struct Node* successor(struct Node* root,int key){
 		return succ;
 	}
 
-	if(keynode->right !=NULL){
+	if(keynode->right !=NULL){ // find minimum in right subtree
 		return findMin(keynode->right);
 	}
 
 	struct Node* temp = keynode;
-	while(temp->parent != NULL){
+	while(temp->parent != NULL){ // use parent pointers to find succesor
 		if (temp->parent->left == temp)
 			break;
 		temp = temp->parent;
@@ -138,7 +156,7 @@ struct Node* successor(struct Node* root,int key){
 	return temp->parent;
 }
 
-void deleteBST(struct Node* root){
+void deleteBST(struct Node* root){ // using postorder to delete BST
 	if (root==NULL)
 		return;
 	deleteBST(root->left);
@@ -164,6 +182,80 @@ string path(struct Node* root,int key,string bit){  // search a key
 	}
 }
 
+void Children(struct Node* root,int key){
+	struct Node* found = search(root,key);
+	if(found==NULL)
+		cout<<"-1\n";
+	else{
+		if(found->left!=NULL)
+			cout<<found->left->value<<" ";
+		else
+			cout<<"Nil ";
+
+		if(found->right!=NULL)
+			cout<<found->right->value<<endl;
+		else
+			cout<<"Nil\n";
+	}
+}
+
+void Uncle(struct Node* root, int key){
+	struct Node* found = search(root,key);
+	if(found==NULL)
+		cout<<"-1\n";
+	else{
+		if(found->parent==NULL || found->parent->parent ==NULL || found->parent->parent->left==NULL || found->parent->parent->right==NULL)
+			cout<<"-1\n";
+		else if(found->parent->parent->left == found->parent)
+			cout<<found->parent->parent->right->value<<endl;
+		else if(found->parent->parent->right == found->parent)
+			cout<<found->parent->parent->left->value<<endl;
+	}
+}
+
+struct Node* rightRotate(struct Node* root,int key){
+	struct Node* found = search(root,key);
+	if(found==NULL)
+		return root;
+	struct Node* y = found->left;
+	if(y!=NULL){
+		found->left = y->right;
+		if (y->right!=NULL)
+			y->right->parent =  found;
+		y->parent = found->parent;
+		if (found->parent==NULL)
+			root =y;
+		else if (found->parent->left == found)
+			found->parent->left = y;
+		else
+			found->parent->right =y;
+		y->right = found;
+		found->parent =y;
+	}
+	return root;
+}
+
+struct Node* leftRotate(struct Node* root,int key){
+	struct Node* found = search(root,key);
+	if(found==NULL)
+		return root;
+	struct Node* y = found->right;
+	if (y!=NULL){
+		found->right = y->left;
+		if (y->left!=NULL)
+			y->left->parent =  found;
+		y->parent = found->parent;
+		if (found->parent==NULL)
+			root =y;
+		else if (found->parent->right == found)
+			found->parent->right = y;
+		else
+			found->parent->left =y;
+		y->left = found;
+		found->parent =y;
+	}
+	return root;
+}
 int main(){
 	struct Node* root = NULL;
 	string s;
@@ -171,7 +263,7 @@ int main(){
 	string r;
 	stringstream ss(s); // split into words
 	ss >> r;
-	if (r=="N"){ // new BST
+	if (r=="N" || r=="B"){ // new BST
 		deleteBST(root); // delete previous BST
 		root = NULL;
 		while(ss >> r)
@@ -187,7 +279,7 @@ int main(){
 	}
 	else if(r=="+"){
 		ss>>r;
-		insert(root,stoi(r),NULL); 
+		root = insert(root,stoi(r),NULL); 
 	}
 	else if(r=="-"){
 		ss>>r;
@@ -201,6 +293,22 @@ int main(){
 		else
 			cout<<succ->value<<endl;
 	}	
+	else if(r=="U"){
+		ss>>r;
+		Uncle(root,stoi(r)); // Uncle
+	}
+	else if(r=="C"){
+		ss>>r;
+		Children(root,stoi(r)); // Children
+	}
+	else if(r=="L"){
+		ss>>r;
+		root = leftRotate(root,stoi(r)); // left rotate
+	}
+	else if(r=="R"){
+		ss>>r;
+		root = rightRotate(root,stoi(r)); // right rotate
+	}
 }
     return 0;
 }
