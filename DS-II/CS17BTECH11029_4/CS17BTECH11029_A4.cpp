@@ -1,7 +1,7 @@
 /**
 @Author Puneet Mangla
 CS17BTECH11029
-BST for integers
+BST for integers with other functions
 **/
 #include <bits/stdc++.h> 
 using namespace std;

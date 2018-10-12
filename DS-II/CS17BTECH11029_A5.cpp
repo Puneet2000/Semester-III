@@ -1,18 +1,18 @@
 #include <bits/stdc++.h> 
 using namespace std;
-struct Node {
+struct Node { // Node for Queue and Adjacency list
 	int value;
 	struct Node* next;
 };
 
-struct Node* newNode(int value){
+struct Node* newNode(int value){ // returns newly allocated Node pointer
 	struct Node* newnode = (struct Node*)malloc(sizeof(struct Node));
 	newnode->value = value;
 	newnode->next = NULL;
 	return newnode;
 }
 
-class List {
+class List { // List that can behave as both adjacency list and queue
 	struct Node* front;
 	struct Node* rear;
 
@@ -21,7 +21,11 @@ class List {
 		front = rear = NULL;
 	}
 
-	void push_back(int value){
+	~List(){
+		clear();
+	}
+
+	void push_back(int value){ // pushing in the list
 		struct Node* newnode = newNode(value);
 		if(rear==NULL)
 			rear = front = newnode;
@@ -31,7 +35,7 @@ class List {
 		}
 	}
 
-	struct Node* pop_front(){
+	struct Node* pop_front(){ // pop front
 		if(front==NULL)
 			return NULL;
 		struct Node* temp = front;
@@ -41,7 +45,7 @@ class List {
 		return temp;
 	}
 
-	bool find(int value){
+	bool find(int value){ // search for an element
 		struct Node* temp= front;
 		while(temp!=NULL){
 			if (temp->value == value)
@@ -51,23 +55,33 @@ class List {
 		return false;
 	}
 
-	bool isEmpty(){
+	bool isEmpty(){ // if list is empty or not
 		if(front==NULL)
 			return true;
 		else
 			false;
 	}
 
-	struct Node* getFront(){
+	struct Node* getFront(){ // return pointer to front
 		return front;
+	}
+
+	void clear(){
+		struct Node* temp = front;
+		while(front != NULL){
+			temp = front;
+			front = front->next;
+			free(temp);
+		}
+		front = rear = NULL;
 	}
 
 };
 
-class Graph{
-	int V;
-	List *adj;
-	int **parent;
+class Graph{ // Graph Class
+	int V; // number of vertices
+	List *adj; // adjacency lists
+	int **parent; // parents corresponding to bfs from a source vertex to avoid extra computation
 
 public:
 	Graph(int V){
@@ -79,32 +93,35 @@ public:
 			memset(parent[i],false,(V+1)*sizeof(int));
 		}
 	}
-
 	Graph(){}
 
-	bool findEdge(int source , int dest){
+	bool findEdge(int source , int dest){ // check if (u,v) belongs to E
 		return adj[source].find(dest);
 	}
 
-	void makeEdge(int source , int dest){
+	void makeEdge(int source , int dest){ // add (u,v) to E
 		adj[source].push_back(dest);
 	}
 
-	void bfs(int source){
-		bool visited[V+1]={0};
+	void clearAdj(int source){
+		adj[source].clear();
+	}
+
+	void bfs(int source){ // breath first traversal for graphs
+		bool visited[V+1]={0}; // visited arrat
 		parent[source][0] = 1;
 		List queue;
 		queue.push_back(source);
 		visited[source] = true;
 		while(!queue.isEmpty()){
-			struct Node* item = queue.pop_front();
+			struct Node* item = queue.pop_front(); // pop element
 			struct Node* temp = adj[item->value].getFront();
 			cout<<item->value<<" ";
-			while(temp!=NULL){
+			while(temp!=NULL){ // add not visited neighbours of poped element
 				if(!visited[temp->value]){
-					visited[temp->value] = true;
+					visited[temp->value] = true; // mark visited true
 					queue.push_back(temp->value);
-					parent[source][temp->value] = item->value;					
+					parent[source][temp->value] = item->value;	// storing parent vertices				
 				}
 				temp=temp->next;
 			}
@@ -113,23 +130,23 @@ public:
 		cout<<endl;
 	}
 
-	void print_path(int source,int dest){
-		if (parent[source][dest]==0)
+	void print_path(int source,int dest){ // recursively print the path given the parent array for all vertices
+		if (parent[source][dest]==0) // return if we reached the source vertex
 			return;
 		int p = parent[source][dest];
-		print_path(source,p);
-		cout<<p<<" ";
+		print_path(source,p); // print path from source vertex to parent of destination vertex
+		cout<<p<<" "; // print destination vertex
 		return;
 	}
 
 	void shortestPath(int source, int dest){
-		if(parent[source][0]==0){
+		if(parent[source][0]==0){ // if bfs is not done yet then do and store parent vertices 
 			parent[source][0]=1;
 			bool visited[V+1]={0};
 			List queue;
 			queue.push_back(source);
 			visited[source] = true;
-			while(!queue.isEmpty()){
+			while(!queue.isEmpty()){ // same as bfs
 				struct Node* item = queue.pop_front();
 				struct Node* temp = adj[item->value].getFront();
 				if(item->value == dest)
@@ -145,7 +162,7 @@ public:
 
 			}
 	}
-	if(parent[source][dest]==0)
+	if(parent[source][dest]==0) // if no parent for destination vertex is there then return -1
 		cout<<"-1\n";
 	else{
 		print_path(source,dest);
@@ -162,29 +179,30 @@ int main(){
 	string r;
 	stringstream ss(s);
 	ss >> r;
-	if (r=="N"){ 
+	if (r=="N"){ // Number of vertices
 		ss>>r;
-		g = Graph(stoi(r));
+		g = Graph(stoi(r)); // re-initialize graph
 	}
-	else if(r=="B"){
+	else if(r=="B"){ // do bfs
 		ss>>r;
 		g.bfs(stoi(r));	
 	}
-	else if(r=="?"){
+	else if(r=="?"){ // check if (u,v) belongs to E
 		ss>>r;
 		string dest;
 		ss>>dest;
 		cout<<g.findEdge(stoi(r),stoi(dest))<<endl;	
 	}
-	else if(r=="P"){
+	else if(r=="P"){ // print shortest path from u to v
 		ss>>r;
 		string dest;
 		ss>>dest;
 		g.shortestPath(stoi(r),stoi(dest));	
 	}
-	else if(r=="E"){
+	else if(r=="E"){ // add Edges in E
 		string u ;
 		ss>>u;
+		g.clearAdj(stoi(u));
 		while(ss>>r)
 			g.makeEdge(stoi(u),stoi(r));	
 	}
