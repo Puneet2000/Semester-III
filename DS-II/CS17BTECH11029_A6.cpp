@@ -2,15 +2,88 @@
 using namespace std;
 struct Node { // Node for Queue and Adjacency list
 	int value;
+	int weight;
 	struct Node* next;
 };
 
-struct Node* newNode(int value){ // returns newly allocated Node pointer
+struct Node* newNode(int value,int weight){ // returns newly allocated Node pointer
 	struct Node* newnode = (struct Node*)malloc(sizeof(struct Node));
 	newnode->value = value;
+	newnode->weight = weight;
 	newnode->next = NULL;
 	return newnode;
 }
+
+struct heapNode {
+	int vertex;
+	int weight;
+}
+
+class MinHeap{
+	struct heapNode *weights;
+	int V;
+	int size;
+public:
+
+	MinHeap(int V){
+		this->V = V;
+		this->size =0;
+		this->weights = (struct heapNode*)malloc(V*sizeof(heapNode));
+	}
+
+	int parent(int i){
+		return (i-1)/2;
+	}
+
+	int left_child(int i){
+		return 2*i+1;
+	}
+
+	int right_child(int i){
+		return 2*i+2;
+	}
+
+	void insert(int vertex , int weight){
+		struct heapNode node;
+		node.vertex = vertex;
+		node.weight = weight;
+		weights[size] = node;
+		int index = size;
+		while(index!=0){
+			if(weights[parent(index)].weight > weights[index].weight){
+				swap(index, parent(index));
+				index  = parent(index);
+			}
+			else
+				break;
+		}
+		size++;
+
+	}
+
+	struct heapNode extractMin(){
+		if(size==1){
+			size--;
+			return weights[0];
+		}
+		struct heapNode min = weights[0];
+		size--;
+		weights[0] = weights[size];
+		Heapify(0);
+		return min;
+	}
+
+	void decreaseKey(int vertex , int weight){
+		for (int i=0;i<size;i++){
+			if(weights[i].vertex==vertex){
+				weights[i].weight = weight;
+			}
+		}
+	}
+
+
+
+};
 
 class List { // List that can behave as both adjacency list and queue
 	struct Node* front;
@@ -21,9 +94,12 @@ class List { // List that can behave as both adjacency list and queue
 		front = rear = NULL;
 	}
 
+	~List(){
+		clear();
+	}
 
-	void push_back(int value){ // pushing in the list
-		struct Node* newnode = newNode(value);
+	void push_back(int value , int weight){ // pushing in the list
+		struct Node* newnode = newNode(value , weight);
 		if(rear==NULL)
 			rear = front = newnode;
 		else{
@@ -42,14 +118,14 @@ class List { // List that can behave as both adjacency list and queue
 		return temp;
 	}
 
-	bool find(int value){ // search for an element
+	int find(int value){ // search for an element
 		struct Node* temp= front;
 		while(temp!=NULL){
 			if (temp->value == value)
-				return true;
+				return temp->weight;
 			temp = temp->next;
 		}
-		return false;
+		return -1;
 	}
 
 	bool isEmpty(){ // if list is empty or not
@@ -88,28 +164,16 @@ public:
 		for(int i=0;i<V+1;i++){
 			parent[i] = new int[V+1];
 			memset(parent[i],false,(V+1)*sizeof(int));
-
 		}
 	}
 	Graph(){}
-
-	~Graph(){
-		for(int i=0;i<V+1;i++){
-			adj[i].clear();
-		}
-		for(int i=0;i<V+1;i++){
-			free(parent[i]);
-		}
-		free(parent);
-		free(adj);
-	}
 
 	bool findEdge(int source , int dest){ // check if (u,v) belongs to E
 		return adj[source].find(dest);
 	}
 
-	void makeEdge(int source , int dest){ // add (u,v) to E
-		adj[source].push_back(dest);
+	void makeEdge(int source , int dest , int weight){ // add (u,v) to E
+		adj[source].push_back(dest,weight);
 	}
 
 	void clearAdj(int source){
@@ -135,11 +199,8 @@ public:
 				temp=temp->next;
 			}
 
-			free(item);
-
 		}
 		cout<<endl;
-		queue.clear();
 	}
 
 	void print_path(int source,int dest){ // recursively print the path given the parent array for all vertices
@@ -173,7 +234,6 @@ public:
 				}
 
 			}
-			queue.clear();
 	}
 	if(parent[source][dest]==0) // if no parent for destination vertex is there then return -1
 		cout<<"-1\n";
@@ -186,20 +246,15 @@ public:
 };
 
 int main(){
-	Graph g = Graph(4);
+	Graph g = Graph();
 	string s;
 	while(getline(cin,s)){ 
-		string r;
-		stringstream ss(s);
+	string r;
+	stringstream ss(s);
 	ss >> r;
 	if (r=="N"){ // Number of vertices
 		ss>>r;
-		(&g)->~Graph();
-		new (&g) Graph(stoi(r));
-	}
-	else if(r=="B"){ // do bfs
-		ss>>r;
-		g.bfs(stoi(r));	
+		g = Graph(stoi(r)); // re-initialize graph
 	}
 	else if(r=="?"){ // check if (u,v) belongs to E
 		ss>>r;
@@ -214,11 +269,13 @@ int main(){
 		g.shortestPath(stoi(r),stoi(dest));	
 	}
 	else if(r=="E"){ // add Edges in E
-		string u ;
+		string u ,w;
 		ss>>u;
 		g.clearAdj(stoi(u));
-		while(ss>>r)
-			g.makeEdge(stoi(u),stoi(r));	
+		while(ss>>r){
+			ss>>w;
+			g.makeEdge(stoi(u),stoi(r),stoi(w));	
+		}
 	}
 }
     return 0;
