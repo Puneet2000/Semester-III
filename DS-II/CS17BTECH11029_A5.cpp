@@ -63,7 +63,7 @@ class List { // List that can behave as both adjacency list and queue
 		return front;
 	}
 
-	void clear(){
+	void clear(){ // clear function to delete the list object
 		struct Node* temp = front;
 		while(front != NULL){
 			temp = front;
@@ -94,14 +94,14 @@ public:
 	Graph(){}
 
 	~Graph(){
-		for(int i=0;i<V+1;i++){
+		for(int i=0;i<V+1;i++){ // free lists
 			adj[i].clear();
 		}
-		for(int i=0;i<V+1;i++){
+		for(int i=0;i<V+1;i++){ // free parent matrix
 			free(parent[i]);
 		}
-		free(parent);
-		free(adj);
+		free(parent); // free parent
+		free(adj); // free adj
 	}
 
 	bool findEdge(int source , int dest){ // check if (u,v) belongs to E
@@ -112,7 +112,7 @@ public:
 		adj[source].push_back(dest);
 	}
 
-	void clearAdj(int source){
+	void clearAdj(int source){ // clear the the list corresponding to a vertex
 		adj[source].clear();
 	}
 
