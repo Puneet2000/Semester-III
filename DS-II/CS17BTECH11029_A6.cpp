@@ -17,18 +17,26 @@ struct Node* newNode(int value,int weight){ // returns newly allocated Node poin
 struct heapNode {
 	int vertex;
 	int weight;
-}
+};
 
 class MinHeap{
 	struct heapNode *weights;
 	int V;
 	int size;
+	int *map;
 public:
 
 	MinHeap(int V){
 		this->V = V;
 		this->size =0;
 		this->weights = (struct heapNode*)malloc(V*sizeof(heapNode));
+		this->map = (int*)malloc((V+1)*sizeof(int));
+		memset (this->map, -1, sizeof (int) * (V+1));
+	}
+
+	~MinHeap(){
+		free(map);
+		free(weights);
 	}
 
 	int parent(int i){
@@ -43,11 +51,21 @@ public:
 		return 2*i+2;
 	}
 
+	void swap(int i,int j){
+		struct heapNode node;
+		node = weights[i];
+		map[weights[i].vertex] = j;
+		map[weights[j].vertex] = i;
+		weights[i] = weights[j];
+		weights[j] = node;	
+	}
+
 	void insert(int vertex , int weight){
 		struct heapNode node;
 		node.vertex = vertex;
 		node.weight = weight;
 		weights[size] = node;
+		map[node.vertex] = size;
 		int index = size;
 		while(index!=0){
 			if(weights[parent(index)].weight > weights[index].weight){
@@ -68,21 +86,56 @@ public:
 		}
 		struct heapNode min = weights[0];
 		size--;
+		map[min.vertex]=-1;
 		weights[0] = weights[size];
+		map[weights[size].vertex] = 0;
 		Heapify(0);
 		return min;
 	}
 
+	void Heapify(int i){
+		int left = left_child(i) , right = right_child(i);
+		int min = i;
+		if (left<size && weights[left].weight <  weights[i].weight)
+			min = left;
+		if (right<size && weights[right].weight < weights[min].weight)
+			min = right;
+		if (min!=i){
+			swap(i,min);
+			Heapify(min);
+		}
+
+	}
+
 	void decreaseKey(int vertex , int weight){
+		int index = map[vertex];
+		weights[index].weight = weight;
+		while (index != 0 && weights[parent(index)].weight > weights[index].weight) 
+	    { 
+	       swap(index , parent(index)); 
+	       index = parent(index); 
+	    }  
+	}
+
+	bool isEmpty(){
+		if(size==0)
+			return true;
+		else
+			return false;
+	}
+
+	void printHeap(){
 		for (int i=0;i<size;i++){
-			if(weights[i].vertex==vertex){
-				weights[i].weight = weight;
-			}
+			cout<<"( "<<weights[i].vertex<<" , "<<weights[i].weight<<" )\n";
 		}
 	}
 
 
-
+	bool inHeap(int vertex){
+		if(map[vertex]==-1)
+			return false;
+		return true;
+	}
 };
 
 class List { // List that can behave as both adjacency list and queue
@@ -92,10 +145,6 @@ class List { // List that can behave as both adjacency list and queue
 	public :
 	List(){
 		front = rear = NULL;
-	}
-
-	~List(){
-		clear();
 	}
 
 	void push_back(int value , int weight){ // pushing in the list
@@ -154,25 +203,26 @@ class List { // List that can behave as both adjacency list and queue
 class Graph{ // Graph Class
 	int V; // number of vertices
 	List *adj; // adjacency lists
-	int **parent; // parents corresponding to bfs from a source vertex to avoid extra computation
 
 public:
 	Graph(int V){
 		this->V = V;
 		this->adj = (List *)malloc((V+1)*sizeof(List));
-		parent = new int* [V+1];
-		for(int i=0;i<V+1;i++){
-			parent[i] = new int[V+1];
-			memset(parent[i],false,(V+1)*sizeof(int));
-		}
 	}
-	Graph(){}
 
-	bool findEdge(int source , int dest){ // check if (u,v) belongs to E
+	~Graph(){
+		for(int i=0;i<V+1;i++){ // free lists
+			adj[i].clear();
+		}
+		free(adj); // free adj
+	}
+
+	int findEdge(int source , int dest){ // check if (u,v) belongs to E
 		return adj[source].find(dest);
 	}
 
 	void makeEdge(int source , int dest , int weight){ // add (u,v) to E
+		//cout<<"edge made\n";
 		adj[source].push_back(dest,weight);
 	}
 
@@ -180,81 +230,101 @@ public:
 		adj[source].clear();
 	}
 
-	void bfs(int source){ // breath first traversal for graphs
-		bool visited[V+1]={0}; // visited arrat
-		parent[source][0] = 1;
-		List queue;
-		queue.push_back(source);
-		visited[source] = true;
-		while(!queue.isEmpty()){
-			struct Node* item = queue.pop_front(); // pop element
-			struct Node* temp = adj[item->value].getFront();
-			cout<<item->value<<" ";
-			while(temp!=NULL){ // add not visited neighbours of poped element
-				if(!visited[temp->value]){
-					visited[temp->value] = true; // mark visited true
-					queue.push_back(temp->value);
-					parent[source][temp->value] = item->value;	// storing parent vertices				
-				}
-				temp=temp->next;
+	void dijsktra(int source){
+		MinHeap heap(V);
+		int distance[V+1];
+		for(int i=1;i<V+1;i++){
+			if(i==source){
+				heap.insert(i,0);
+				distance[i]=0;
 			}
-
+			else{
+				distance[i]=INT_MAX;
+				heap.insert(i,INT_MAX);
+			}
 		}
-		cout<<endl;
+		
+		while(!heap.isEmpty()){
+			struct heapNode min = heap.extractMin();
+			int vertex = min.vertex;
+			if(min.weight != INT_MAX)
+				cout<<vertex<<" "<<min.weight<<endl;
+			else
+				cout<<vertex<<" "<<-1<<endl;
+			struct Node* temp = adj[vertex].getFront();
+			while(temp!=NULL){
+				if(heap.inHeap(temp->value) && distance[vertex]+temp->weight < distance[temp->value]){
+					distance[temp->value] = distance[vertex]+temp->weight;
+					heap.decreaseKey(temp->value,distance[temp->value]);
+				}
+				temp= temp->next;
+
+			}
+		}
+
 	}
 
-	void print_path(int source,int dest){ // recursively print the path given the parent array for all vertices
-		if (parent[source][dest]==0) // return if we reached the source vertex
+	void print_path(int source,int dest , int parent[]){ // recursively print the path given the parent array for all vertices
+		if (parent[dest]==0) // return if we reached the source vertex
 			return;
-		int p = parent[source][dest];
-		print_path(source,p); // print path from source vertex to parent of destination vertex
+		int p = parent[dest];
+		print_path(source,p,parent); // print path from source vertex to parent of destination vertex
 		cout<<p<<" "; // print destination vertex
 		return;
 	}
 
-	void shortestPath(int source, int dest){
-		if(parent[source][0]==0){ // if bfs is not done yet then do and store parent vertices 
-			parent[source][0]=1;
-			bool visited[V+1]={0};
-			List queue;
-			queue.push_back(source);
-			visited[source] = true;
-			while(!queue.isEmpty()){ // same as bfs
-				struct Node* item = queue.pop_front();
-				struct Node* temp = adj[item->value].getFront();
-				if(item->value == dest)
-					break;
-				while(temp!=NULL){
-					if(!visited[temp->value]){
-						visited[temp->value] = true;
-						parent[source][temp->value] = item->value;
-						queue.push_back(temp->value);					
-					}
-					temp=temp->next;
+	void shortest_path(int source, int dest){
+		MinHeap heap(V);
+		int distance[V+1];
+		int parent[V+1]={0};
+		for(int i=1;i<V+1;i++){
+			if(i==source){
+				heap.insert(i,0);
+				distance[i]=0;
+			}
+			else{
+				distance[i]=INT_MAX;
+				heap.insert(i,INT_MAX);
+			}
+		}
+		
+		while(!heap.isEmpty()){
+			struct heapNode min = heap.extractMin();
+			int vertex = min.vertex;
+			struct Node* temp = adj[vertex].getFront();
+			while(temp!=NULL){
+				if(heap.inHeap(temp->value) && distance[vertex]+temp->weight < distance[temp->value]){
+					distance[temp->value] = distance[vertex]+temp->weight;
+					heap.decreaseKey(temp->value,distance[temp->value]);
+					parent[temp->value]=vertex;
 				}
+				temp= temp->next;
 
 			}
-	}
-	if(parent[source][dest]==0) // if no parent for destination vertex is there then return -1
-		cout<<"-1\n";
-	else{
-		print_path(source,dest);
-		cout<<dest<<endl;
-	}
-}
+		}
+		if(parent[dest]==0)
+			cout<<"-1\n";
+		else{
+			cout<<distance[dest]<<" ";
+			print_path(source,dest,parent);
+			cout<<dest<<endl;
+		}
 
+	}
 };
 
 int main(){
-	Graph g = Graph();
+
+	Graph g = Graph(4);
 	string s;
 	while(getline(cin,s)){ 
-	string r;
-	stringstream ss(s);
+		string r;
+		stringstream ss(s);
 	ss >> r;
 	if (r=="N"){ // Number of vertices
 		ss>>r;
-		g = Graph(stoi(r)); // re-initialize graph
+		(&g)->~Graph();
+		new (&g) Graph(stoi(r));
 	}
 	else if(r=="?"){ // check if (u,v) belongs to E
 		ss>>r;
@@ -262,17 +332,22 @@ int main(){
 		ss>>dest;
 		cout<<g.findEdge(stoi(r),stoi(dest))<<endl;	
 	}
+	else if(r=="D"){ // print shortest path from u to v
+		ss>>r;
+		g.dijsktra(stoi(r));	
+	}
 	else if(r=="P"){ // print shortest path from u to v
 		ss>>r;
 		string dest;
 		ss>>dest;
-		g.shortestPath(stoi(r),stoi(dest));	
+		g.shortest_path(stoi(r),stoi(dest));	
 	}
 	else if(r=="E"){ // add Edges in E
-		string u ,w;
+		string u ;
 		ss>>u;
 		g.clearAdj(stoi(u));
 		while(ss>>r){
+			string w;
 			ss>>w;
 			g.makeEdge(stoi(u),stoi(r),stoi(w));	
 		}
