@@ -14,19 +14,19 @@ struct Node* newNode(int value,int weight){ // returns newly allocated Node poin
 	return newnode;
 }
 
-struct heapNode {
+struct heapNode { // Node to store vertex and corresponding value in heap
 	int vertex;
 	int weight;
 };
 
-class MinHeap{
-	struct heapNode *weights;
+class MinHeap{ // Min-Heap
+	struct heapNode *weights; // array of nodes
 	int V;
-	int size;
-	int *map;
+	int size; // current size of heap
+	int *map; // map to map vertex to corresponding index in min-heap array
 public:
 
-	MinHeap(int V){
+	MinHeap(int V){ // initialisation
 		this->V = V;
 		this->size =0;
 		this->weights = (struct heapNode*)malloc(V*sizeof(heapNode));
@@ -39,24 +39,24 @@ public:
 		free(weights);
 	}
 
-	int parent(int i){
+	int parent(int i){ // parent 0 based indexing
 		return (i-1)/2;
 	}
 
-	int left_child(int i){
+	int left_child(int i){ // left child
 		return 2*i+1;
 	}
 
-	int right_child(int i){
+	int right_child(int i){ // right child
 		return 2*i+2;
 	}
 
-	void swap(int i,int j){
+	void swap(int i,int j){ // swap two nodes in min-heap
 		struct heapNode node;
 		node = weights[i];
-		map[weights[i].vertex] = j;
+		map[weights[i].vertex] = j; // change their corresponding maps
 		map[weights[j].vertex] = i;
-		weights[i] = weights[j];
+		weights[i] = weights[j]; // change the correspinding nodes
 		weights[j] = node;	
 	}
 
@@ -67,7 +67,7 @@ public:
 		weights[size] = node;
 		map[node.vertex] = size;
 		int index = size;
-		while(index!=0){
+		while(index!=0){ // correcting the destroyed heap
 			if(weights[parent(index)].weight > weights[index].weight){
 				swap(index, parent(index));
 				index  = parent(index);
@@ -84,12 +84,12 @@ public:
 			size--;
 			return weights[0];
 		}
-		struct heapNode min = weights[0];
+		struct heapNode min = weights[0]; // extract and decreae size
 		size--;
 		map[min.vertex]=-1;
-		weights[0] = weights[size];
-		map[weights[size].vertex] = 0;
-		Heapify(0);
+		weights[0] = weights[size]; // swap last and first node
+		map[weights[size].vertex] = 0; 
+		Heapify(0); // Heapify call
 		return min;
 	}
 
@@ -122,12 +122,6 @@ public:
 			return true;
 		else
 			return false;
-	}
-
-	void printHeap(){
-		for (int i=0;i<size;i++){
-			cout<<"( "<<weights[i].vertex<<" , "<<weights[i].weight<<" )\n";
-		}
 	}
 
 
@@ -332,7 +326,7 @@ int main(){
 		ss>>dest;
 		cout<<g.findEdge(stoi(r),stoi(dest))<<endl;	
 	}
-	else if(r=="D"){ // print shortest path from u to v
+	else if(r=="D"){ // dijstjra algorithm
 		ss>>r;
 		g.dijsktra(stoi(r));	
 	}
