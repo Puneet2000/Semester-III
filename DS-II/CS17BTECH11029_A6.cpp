@@ -1,3 +1,9 @@
+/**
+@author Puneet Mangla
+CS17BTECH11029
+Dijsktra Algorithm
+**/
+
 #include <bits/stdc++.h> 
 using namespace std;
 struct Node { // Node for Queue and Adjacency list

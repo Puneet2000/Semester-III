@@ -1,3 +1,9 @@
+/**
+@author Puneet Mangla
+CS17BTECH11029
+Disjoint Set Union Forrest
+**/
+
 #include <bits/stdc++.h> 
 using namespace std;
 
@@ -15,7 +21,6 @@ struct Node* newNode(int value){ // returns newly allocated Node pointer
 	return newnode;
 }
 
-
 class DSU{
 	int N;
 	struct Node** pointers;
@@ -26,6 +31,12 @@ public:
 		for(int i=1;i<N+1;i++)
 			pointers[i] = newNode(i);
 		
+	}
+
+	~DSU(){
+		for(int i=0;i<N+1;i++)
+			free(pointers[i]);
+		free(pointers);
 	}
 
 	int representative(int value){
@@ -50,12 +61,10 @@ public:
 			return;
 		struct Node* ra = pointers[representative(a)];
 		struct Node* rb  = pointers[representative(b)];
-		if(ra->rank < rb->rank){
+		if(ra->rank < rb->rank)
 			ra->parent = rb;
-		}
-		else if(ra->rank > rb->rank){
+		else if(ra->rank > rb->rank)
 			rb->parent = ra;
-		}
 		else{
 			rb->parent = ra;
 			ra->rank+=1;
