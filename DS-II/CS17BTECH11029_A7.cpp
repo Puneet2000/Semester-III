@@ -7,7 +7,7 @@ Disjoint Set Union Forrest
 #include <bits/stdc++.h> 
 using namespace std;
 
-struct Node{
+struct Node{ // Node of DSU
 	int rank;
 	int value;
 	struct Node* parent;
@@ -23,7 +23,7 @@ struct Node* newNode(int value){ // returns newly allocated Node pointer
 
 class DSU{
 	int N;
-	struct Node** pointers;
+	struct Node** pointers; // array of pointers pointing to a node of DSU for random access
 public:
 	DSU(int N){
 		this->N = N;
@@ -43,7 +43,7 @@ public:
 		if(!(value >=1 && value<=N))
 			return -1;
 		struct Node* temp = pointers[value];
-		while(temp->parent!=NULL)
+		while(temp->parent!=NULL) // go upward until parent becomes NULL , that node will be the representative
 			temp = temp->parent;
 		return temp->value;		
 	}
@@ -51,12 +51,12 @@ public:
 	int same_set(int a, int b){
 		if(!(a>=1 && a<=N) || !(b>=1 && b<=N))
 			return -1;
-		if(representative(a)==representative(b))
+		if(representative(a)==representative(b)) // check if representative are same or not
 			return 1;
 		return 0;
 	}
 
-	void Union(int a, int b){
+	void Union(int a, int b){ // make set with small rank children of set with bigger rank 
 		if(!(a>=1 && a<=N) || !(b>=1 && b<=N))
 			return;
 		struct Node* ra = pointers[representative(a)];
@@ -65,13 +65,13 @@ public:
 			ra->parent = rb;
 		else if(ra->rank > rb->rank)
 			rb->parent = ra;
-		else{
+		else{ // if rank are same make anyone as parent and increase its rank by 1
 			rb->parent = ra;
 			ra->rank+=1;
 		}
 	}
 
-	int rank(int a){
+	int rank(int a){ // print rank if node is valid
 		if(a>=1 && a<=N)
 			return pointers[a]->rank;
 		return -1;
