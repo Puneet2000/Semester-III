@@ -6,7 +6,11 @@ struct Node{
 	int *keys;
 	bool isleaf;
 	struct Node** children;
-	struct Node* parent;
+};
+
+struct Id{
+	struct Node* node;
+	int index;
 };
 
 struct Node* newNode(int t){
@@ -14,9 +18,14 @@ struct Node* newNode(int t){
 	node->keys = (int*)malloc((2*t)*sizeof(int));
 	node->children = (struct Node**)malloc((2*t+1)*sizeof(struct Node*));
 	node->n_keys = 0;
-	node->parent = NULL;
 	node->isleaf = true;
 	return node;
+}
+
+void deleteNode(struct Node* node){
+	free(node->keys);
+	free(node->children);
+	free(node);
 }
 
 class BTree{
@@ -121,18 +130,127 @@ public:
 			Traverse(root->children[i]);
 
 	}
+
+	int findPred(struct Node* node , int index){
+		struct Node* temp = node->children[index];
+		while(!temp->isleaf)
+			temp = temp->children[temp->n_keys+1];
+		return temp->keys[temp->n_keys];
+	}
+
+	int findSucc(struct Node* node , int index){
+		struct Node* temp = node->children[index+1];
+		while(!temp->isleaf)
+			temp = temp->children[1];
+		return temp->keys[1];
+	}
+
+	bool Search(struct Node* x , int k){
+		int i=1;
+		while(i<=x->n_keys && k>x->keys[i])
+			i++;
+		if (i<=x->n_keys && k== x->keys[i])
+			return true;
+		else if(x->isleaf)
+			return false;
+		else 
+			return Search(x->children[i],k);
+	}
+
+	bool search(int k){
+		return Search(root,k);
+	}
+
+	void Delete1(struct Node* node , int index){
+		int k = node->keys[index];
+		if(node->isleaf){
+			for(int i= index+1;i<=node->n_keys;i++)
+				node->keys[i-1]= node->keys[i];
+			node->n_keys--;
+		}
+		else{
+			if(node->children[index]->n_keys>=t){
+				int x = findPred(node,index);
+				node->keys[index] = x;
+				deleteKey(node->children[index],x);
+				
+			}
+			else if(node->children[index+1]->n_keys>=t){
+				int succ = findSucc(node);
+				node->keys[index] = x;
+				deleteKey(node->children[index+1],x);
+			}
+			else{
+				merge(node,index);
+				deleteKey(node,k);
+			}
+		}
+	}
+
+	void merge(struct Node* node, int index){
+		struct Node* left = node->children[index];
+		struct Node* right =  node->children[index+1];
+		left->keys[t] = node->keys[index];
+		for(int i=1;i<=right->n_keys;i++)
+			left->keys[t+i] =  right->keys[i];
+		if(!left->isleaf){
+			for(int i=1;i<=right->n_keys+1;i++)
+				left->children[i+t] = right->children[i];
+		}
+
+		for(int i = index+1;i<=node->n_keys;i++)
+			node->keys[i-1] = node->keys[i];
+		for(int i=index+2;i<=node->n_keys+1;i++)
+			node->children[i-1]= node->children[i];
+		left->n_keys+= right->n_keys+1;
+		node->n_keys--;
+		delete(right);
+		return;
+	}
+
+	void deleteKey(struct Node* node,int k){
+		int index=1;
+		while(index<=node->n_keys && node->keys[index]<k)
+			index = index+1;
+		if(index <=node->n_keys && node->keys[index]==k)
+			Delete1(node,index);
+		else{
+			if(node->isleaf){
+				cout<<"key doesn't exists\n";
+				return;
+			}
+		}
+
+	}
+
 };
 
 int main(){
 	BTree t(3);
-	t.insert(10);
-	t.insert(19);
-	t.insert(5);
-	t.insert(6);
-	t.insert(12);
-	t.insert(30);
-	t.insert(7);
-	t.insert(17);
-	t.traverse();
+	t.insert(1); 
+    t.insert(3); 
+    t.insert(7); 
+    t.insert(10); 
+    t.insert(11); 
+    t.insert(13); 
+    t.insert(14); 
+    t.insert(15); 
+    t.insert(18); 
+    t.insert(16); 
+    t.insert(19); 
+    t.insert(24); 
+    t.insert(25); 
+    t.insert(26); 
+    t.insert(21); 
+    t.insert(4); 
+    t.insert(5); 
+    t.insert(20); 
+    t.insert(22); 
+    t.insert(2); 
+    t.insert(17); 
+    t.insert(12); 
+    t.insert(6); 
+	struct Id found = t.search(7);
+	cout<<(found.node)->keys[found.index]<<endl;
 	return 0;
 }
