@@ -8,10 +8,6 @@ struct Node{
 	struct Node** children;
 };
 
-struct Id{
-	struct Node* node;
-	int index;
-};
 
 struct Node* newNode(int t){
 	struct Node* node = (struct Node*)malloc(sizeof(struct Node));
@@ -35,6 +31,22 @@ public:
 	BTree(int t){
 		this->t = t;
 		root = NULL;
+	}
+
+	~BTree(){
+		deleteBTree(root);
+	}
+
+	void deleteBTree(struct Node* root){
+		if(root==NULL)
+			return;
+		if(root->isleaf)
+			deleteNode(root);
+		else{
+			for(int i=1;i<=root->n_keys+1;i++)
+				deleteBTree(root->children[i]);
+			deleteNode(root);
+		}
 	}
 
 	struct Node* split_child(struct Node* x , int i){
@@ -172,13 +184,13 @@ public:
 		
 		int k = node->keys[index];
 		if(node->isleaf){
-			cout<<"delete from Leaf\n";
+			//cout<<"delete from Leaf\n";
 			for(int i= index+1;i<=node->n_keys;i++)
 				node->keys[i-1]= node->keys[i];
 			node->n_keys--;
 		}
 		else{
-			cout<<"delete from Non-Leaf\n";
+			//cout<<"delete from Non-Leaf\n";
 			if(node->children[index]->n_keys>=t){
 				int x = findPred(node,index);
 				node->keys[index] = x;
@@ -198,7 +210,7 @@ public:
 	}
 
 	void merge(struct Node* node, int index){
-		cout<<"merge\n";
+		//cout<<"merge\n";
 		struct Node* left = node->children[index];
 		struct Node* right =  node->children[index+1];
 		left->keys[t] = node->keys[index];
@@ -215,12 +227,12 @@ public:
 			node->children[i-1]= node->children[i];
 		left->n_keys+= right->n_keys+1;
 		node->n_keys--;
-		delete(right);
+		deleteNode(right);
 		return;
 	}
 
 	void deleteKey(struct Node* node,int k){
-		cout<<"deleteKey\n";
+		//cout<<"deleteKey\n";
 		int index=1;
 		while(index<=node->n_keys && node->keys[index]<k)
 			index = index+1;
@@ -246,7 +258,7 @@ public:
 	}
 
 	void borrowOrMerge(struct Node* node,int index){
-		cout<<"borrow or Mergey\n";
+		//cout<<"borrow or Mergey\n";
 		if(index!=1 && node->children[index-1]->n_keys>=t)
 			borrowFromPrev(node,index);
 		else if(index!=node->n_keys+1 && node->children[index+1]->n_keys>=t)
@@ -260,7 +272,7 @@ public:
 	}
 
 	void borrowFromPrev(struct Node* node,int index){
-		cout<<"borrow from previous\n";
+		//cout<<"borrow from previous\n";
 		struct Node* child = node->children[index];
 		struct Node* sibling = node->children[index-1];
 
@@ -284,7 +296,7 @@ public:
 	}
 
 	void borrowFromNext(struct Node* node,int index){
-		cout<<"borrow from Next\n";
+		//cout<<"borrow from Next\n";
 		struct Node* child = node->children[index];
 		struct Node* sibling = node->children[index+1];
 
@@ -295,7 +307,6 @@ public:
 		}
 
 		node->keys[index] = sibling->keys[1];
-		child->keys[1] = node->keys[index-1];
 		for(int i=2;i<=sibling->n_keys;i++)
 			sibling->keys[i-1]= sibling->keys[i];
 		if(!sibling->isleaf){
@@ -314,8 +325,8 @@ public:
 };
 
 int main(){
-	BTree t(3);
-	t.insert(1); 
+	 BTree t(3); // A B-Tree with minium degree 3 
+    t.insert(1); 
     t.insert(3); 
     t.insert(7); 
     t.insert(10); 
@@ -338,23 +349,5 @@ int main(){
     t.insert(17); 
     t.insert(12); 
     t.insert(6); 
-    cout << "removing 6\n";
-    t.remove(6); 
-    cout << endl;
-    cout << "removing 13\n";
-    t.remove(13);
-    cout << endl; 
-    cout << "removing 7\n";
-    t.remove(7); 
-    cout << endl; 
-    cout << "removing 4\n"; 
-    t.remove(4); ; 
-    cout << endl; 
-  	cout << "removing 2\n";
-    t.remove(2); 
-    cout << endl; 
-  	cout << "removing 16\n";
-    t.remove(16); 
-    cout << endl; 
-	return 0;
+    return 0; 
 }
