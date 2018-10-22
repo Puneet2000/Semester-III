@@ -34,7 +34,7 @@ class BTree{
 public:
 	BTree(int t){
 		this->t = t;
-		root = newNode(t);
+		root = NULL;
 	}
 
 	struct Node* split_child(struct Node* x , int i){
@@ -49,7 +49,7 @@ public:
 			z->keys[j] = y->keys[j+t];
 
 		if (!y->isleaf){
-			for(int j=1;j<=t-1;j++)
+			for(int j=1;j<=t;j++)
 				z->children[j] = y->children[j+t];
 		}
 
@@ -68,17 +68,24 @@ public:
 
 	void insert(int key){
 		//cout<<"inserintg "<<key<<endl;
-		struct Node* r = root;
-		if (r->n_keys == 2*t-1){
-			struct Node* s = newNode(t);
-			root = s;
-			s->isleaf = false;
-			s->children[1] = r;
-			s = split_child(s,1);
-			s = insert_non_full(s,key);
+		if (root==NULL){
+			root = newNode(t);
+			root->keys[1]=key;
+			root->n_keys=1;
 		}
-		else
-			root = insert_non_full(root,key);
+		else{
+			struct Node* r = root;
+			if (r->n_keys == 2*t-1){
+				struct Node* s = newNode(t);
+				root=s;
+				s->isleaf = false;
+				s->children[1] = r;
+				s = split_child(s,1);
+				s = insert_non_full(s,key);
+			}
+			else
+				root = insert_non_full(r,key);
+		}
 
 	}
 
@@ -104,7 +111,7 @@ public:
 			i = i+1;
 			if(x->children[i]->n_keys == 2*t-1){
 				x = split_child(x,i);
-				if (key<x->keys[i])
+				if (key>x->keys[i])
 					i=i+1;	
 			}
 			x->children[i]= insert_non_full(x->children[i],key);
@@ -162,13 +169,16 @@ public:
 	}
 
 	void Delete1(struct Node* node , int index){
+		
 		int k = node->keys[index];
 		if(node->isleaf){
+			cout<<"delete from Leaf\n";
 			for(int i= index+1;i<=node->n_keys;i++)
 				node->keys[i-1]= node->keys[i];
 			node->n_keys--;
 		}
 		else{
+			cout<<"delete from Non-Leaf\n";
 			if(node->children[index]->n_keys>=t){
 				int x = findPred(node,index);
 				node->keys[index] = x;
@@ -176,9 +186,9 @@ public:
 				
 			}
 			else if(node->children[index+1]->n_keys>=t){
-				int succ = findSucc(node);
-				node->keys[index] = x;
-				deleteKey(node->children[index+1],x);
+				int succ = findSucc(node,index);
+				node->keys[index] = succ;
+				deleteKey(node->children[index+1],succ);
 			}
 			else{
 				merge(node,index);
@@ -188,6 +198,7 @@ public:
 	}
 
 	void merge(struct Node* node, int index){
+		cout<<"merge\n";
 		struct Node* left = node->children[index];
 		struct Node* right =  node->children[index+1];
 		left->keys[t] = node->keys[index];
@@ -209,6 +220,7 @@ public:
 	}
 
 	void deleteKey(struct Node* node,int k){
+		cout<<"deleteKey\n";
 		int index=1;
 		while(index<=node->n_keys && node->keys[index]<k)
 			index = index+1;
@@ -219,8 +231,84 @@ public:
 				cout<<"key doesn't exists\n";
 				return;
 			}
+
+			bool flag = (index==node->n_keys+1);
+			if(node->children[index]->n_keys<t)
+				borrowOrMerge(node,index);
+
+			if(flag && index>node->n_keys+1)
+				deleteKey(node->children[index-1],k);
+			else
+				deleteKey(node->children[index],k);
+
+		}
+		return;
+	}
+
+	void borrowOrMerge(struct Node* node,int index){
+		cout<<"borrow or Mergey\n";
+		if(index!=1 && node->children[index-1]->n_keys>=t)
+			borrowFromPrev(node,index);
+		else if(index!=node->n_keys+1 && node->children[index+1]->n_keys>=t)
+			borrowFromNext(node,index);
+		else{
+			if(index!=node->n_keys+1)
+				merge(node,index);
+			else
+				merge(node,index-1);
+		}
+	}
+
+	void borrowFromPrev(struct Node* node,int index){
+		cout<<"borrow from previous\n";
+		struct Node* child = node->children[index];
+		struct Node* sibling = node->children[index-1];
+
+		for(int i=node->n_keys;i>=1;i--){
+			child->keys[i+1] = child->keys[i];
 		}
 
+		if(!child->isleaf){
+			for(int i=child->n_keys+1;i>=0;i--){
+				child->children[i+1] = child->children[i];
+			}
+		}
+		child->keys[1] = node->keys[index-1];
+		if(!child->isleaf)
+			child->children[1] - sibling->children[sibling->n_keys+1];
+
+		node->keys[index-1] = sibling->keys[sibling->n_keys];
+		child->n_keys++;
+		sibling->n_keys--;
+		return;
+	}
+
+	void borrowFromNext(struct Node* node,int index){
+		cout<<"borrow from Next\n";
+		struct Node* child = node->children[index];
+		struct Node* sibling = node->children[index+1];
+
+		child->keys[child->n_keys+1]= node->keys[index];
+
+		if(!child->isleaf){
+			child->children[child->n_keys+2]= sibling->children[1];
+		}
+
+		node->keys[index] = sibling->keys[1];
+		child->keys[1] = node->keys[index-1];
+		for(int i=2;i<=sibling->n_keys;i++)
+			sibling->keys[i-1]= sibling->keys[i];
+		if(!sibling->isleaf){
+			for(int i=2;i<=sibling->n_keys+1;i++)
+				sibling->children[i-1] = sibling->children[i];
+		}
+		child->n_keys++;
+		sibling->n_keys--;
+		return;
+	}
+
+	void remove(int k){
+		deleteKey(root,k);
 	}
 
 };
@@ -250,7 +338,23 @@ int main(){
     t.insert(17); 
     t.insert(12); 
     t.insert(6); 
-	struct Id found = t.search(7);
-	cout<<(found.node)->keys[found.index]<<endl;
+    cout << "removing 6\n";
+    t.remove(6); 
+    cout << endl;
+    cout << "removing 13\n";
+    t.remove(13);
+    cout << endl; 
+    cout << "removing 7\n";
+    t.remove(7); 
+    cout << endl; 
+    cout << "removing 4\n"; 
+    t.remove(4); ; 
+    cout << endl; 
+  	cout << "removing 2\n";
+    t.remove(2); 
+    cout << endl; 
+  	cout << "removing 16\n";
+    t.remove(16); 
+    cout << endl; 
 	return 0;
 }
