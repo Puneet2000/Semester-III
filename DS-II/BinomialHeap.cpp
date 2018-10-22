@@ -51,7 +51,6 @@ public:
 		struct Node* h=NULL;
 		h = merge(h1,h2);
 		cout<<h->value<<endl;
-		// free h1 and h2
 		if(h==NULL)
 			return h;
 		struct Node* prev = NULL;
@@ -115,6 +114,56 @@ public:
 				}
 			}
 		return h;
+	}
+/**
+	struct Node* extractMin(){
+		struct Node* prev=NULL;
+		struct Node* y=NULL;
+		struct Node* temp = head;
+		int min = INT_MAX;
+		while(temp!=NULL){
+			if(temp->value<min){
+				min = temp->value;
+				y = temp;
+			}
+			temp = temp->sibling;
+		}
+		return y;
+	}**/
+
+	void decreaseKey(struct Node* x,int k){
+		if(k>x->value)
+			cout<<"can't decrease\n";
+		else{
+			x->value =k;
+			struct Node* y = x;
+			struct Node* z = x->parent;
+			while(z!=NULL && y->value < z->value){
+				swap(y,z);
+				y=z;
+				z = y->parent;
+			}
+		}
+	}
+
+	void Delete(struct Node* x){
+		decreaseKey(x,INT_MIN);
+		struct Node* m = extractMin();
+	}
+
+	void swap(struct Node* y, struct Node* z){
+		struct Node temp;
+		temp.value = z->value;
+		temp.child = z->child;
+		temp.sibling = z->sibling;
+		temp.parent = z->parent;
+		temp.degree = z->degree;
+		z->child = y->child;
+		z->parent = y->parent;
+		z->sibling = y->sibling;
+		y->child = temp.child;
+		y->parent = temp.parent;
+		y->sibling=temp.sibling;
 	}
 	
 };
