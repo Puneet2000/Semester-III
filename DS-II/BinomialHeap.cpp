@@ -21,9 +21,16 @@ struct Node* newNode(int x){
 
 class BHeap{
 	struct Node* head;
+	map <int,struct Node*> mymap;
 public:
 	BHeap(){
 		head=NULL;
+	}
+	~BHeap(){
+		map<int, struct Node*>::iterator it;
+		for ( it = mymap.begin(); it != mymap.end(); it++ )
+			free(it->second);
+		mymap.clear();
 	}
 
 	struct Node* Minimum(){
@@ -50,7 +57,6 @@ public:
 	struct Node* Union(struct Node* h1 , struct Node* h2){
 		struct Node* h=NULL;
 		h = merge(h1,h2);
-		cout<<h->value<<endl;
 		if(h==NULL)
 			return h;
 		struct Node* prev = NULL;
@@ -82,6 +88,7 @@ public:
 		struct Node* x = newNode(v);
 		struct Node* h = x;
 		this->head = Union(this->head,h);
+		mymap.insert(pair<int,struct Node*>(v,x));
 	}
 
 	struct Node* merge(struct Node* h1 , struct Node* h2){
@@ -115,9 +122,9 @@ public:
 			}
 		return h;
 	}
-/**
-	struct Node* extractMin(){
+	void extractMin(){
 		struct Node* prev=NULL;
+		struct Node* p = NULL;
 		struct Node* y=NULL;
 		struct Node* temp = head;
 		int min = INT_MAX;
@@ -125,45 +132,55 @@ public:
 			if(temp->value<min){
 				min = temp->value;
 				y = temp;
+				prev =p;
 			}
+			p = temp;
 			temp = temp->sibling;
 		}
-		return y;
-	}**/
+		if (y==NULL)
+			return;
+		if(prev==NULL)
+			head = y->sibling;
+		else
+			prev->sibling = y->sibling;
+		struct Node* h = y->child;
+		temp = h;
+		while(temp!=NULL){
+			temp->parent =NULL;
+			temp = temp->sibling;
+		}
+		this->head = Union(this->head,h);
+		mymap.erase(mymap.find(y->value));
+		free(y);
+	}
 
-	void decreaseKey(struct Node* x,int k){
+	void remove(int v){
+		decKey(v,INT_MIN);
+		extractMin();
+	}
+
+	void decKey(int v , int k){
+		struct Node* x = mymap.find(v)->second;
 		if(k>x->value)
 			cout<<"can't decrease\n";
 		else{
 			x->value =k;
+			mymap.erase(mymap.find(v));
+			mymap.insert(pair<int,struct Node*>(k,x));
 			struct Node* y = x;
 			struct Node* z = x->parent;
 			while(z!=NULL && y->value < z->value){
-				swap(y,z);
+				mymap.find(y->value)->second = z;
+				mymap.find(z->value)->second = y;
+				int m = y->value;
+				y->value = z->value;
+				z->value = m;
 				y=z;
 				z = y->parent;
 			}
 		}
-	}
 
-	void Delete(struct Node* x){
-		decreaseKey(x,INT_MIN);
-		struct Node* m = extractMin();
-	}
-
-	void swap(struct Node* y, struct Node* z){
-		struct Node temp;
-		temp.value = z->value;
-		temp.child = z->child;
-		temp.sibling = z->sibling;
-		temp.parent = z->parent;
-		temp.degree = z->degree;
-		z->child = y->child;
-		z->parent = y->parent;
-		z->sibling = y->sibling;
-		y->child = temp.child;
-		y->parent = temp.parent;
-		y->sibling=temp.sibling;
+		
 	}
 	
 };
@@ -175,6 +192,12 @@ int main(){
 	t.insert(30);
 	t.insert(2);
 	t.insert(4);
+	t.insert(-1);
+	t.insert(100);
+	t.insert(-2);
+	t.insert(0);
+	t.decKey(0,-4);
 	struct Node* min = t.Minimum();
-	cout<<min->value<<endl;
+	cout<<min->value;
+	return 0;
 }
