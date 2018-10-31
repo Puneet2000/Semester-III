@@ -120,7 +120,7 @@ struct Node* deleteNode(struct Node* root,int key){
 			keynode->parent->left = keynode->left;
 		else
 			keynode->parent->right = keynode->left;
-		keynode->right->parent = keynode->parent;
+		keynode->left->parent = keynode->parent;
 		free(keynode);
 	}
 	}

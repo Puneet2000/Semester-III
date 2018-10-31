@@ -253,7 +253,7 @@ public:
 				cout<<vertex<<" "<<-1<<endl;
 			struct Node* temp = adj[vertex].getFront();
 			while(temp!=NULL){
-				if(heap.inHeap(temp->value) && distance[vertex]+temp->weight < distance[temp->value]){
+				if(heap.inHeap(temp->value) && distance[vertex]!=INT_MAX && distance[vertex]+temp->weight < distance[temp->value]){
 					distance[temp->value] = distance[vertex]+temp->weight;
 					heap.decreaseKey(temp->value,distance[temp->value]);
 				}
@@ -293,7 +293,7 @@ public:
 			int vertex = min.vertex;
 			struct Node* temp = adj[vertex].getFront();
 			while(temp!=NULL){
-				if(heap.inHeap(temp->value) && distance[vertex]+temp->weight < distance[temp->value]){
+				if(heap.inHeap(temp->value) && distance[vertex]!=INT_MAX && distance[vertex]+temp->weight < distance[temp->value]){
 					distance[temp->value] = distance[vertex]+temp->weight;
 					heap.decreaseKey(temp->value,distance[temp->value]);
 					parent[temp->value]=vertex;
