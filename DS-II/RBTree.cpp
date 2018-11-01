@@ -125,6 +125,61 @@ public:
 		root->colour=1;
 	}
 
+	struct Node* minimum(struct Node* root){
+		struct Node* temp = root;
+		if (root == NULL)
+			return root;
+
+		while(temp->left != NULL){ 
+			temp = temp->left;
+		}
+		return temp;
+	}
+
+	void transplant(struct Node* u , struct Node* v){
+		if (u->parent==SENTINAL)
+			root = v;
+		else if(u==u->parent->left)
+			u->parent->left = v;
+		else u->parent->right = v;
+		v->parent = u->parent;
+	}
+
+	void Delete(struct Node* z){
+		struct Node* y = z;
+		int orignal_color = y->colour;
+		if (z->left == SENTINAL){
+			x = z->right;
+			transplant(z,z->right);
+		}
+		else if(z-right == SENTINAL){
+			x = z->left;
+			transplant(z,z->left);
+		}
+		else{
+			y = minimum(z->z-right);
+			orignal_color = y->colour;
+			x = y->right;
+			if(y->parent==z)
+				x->parent=y;
+			else{
+				transplant(y,y->right);
+				y->right = z->right;
+				y->right->parent =y;
+			}
+			transplant(z,y);
+			y->left = z->left;
+			y->left->parent =y;
+			y->colour = z->colour;
+		}
+		if (orignal_color==1)
+			delete_fixup(x);
+	}
+
+	void delete_fixup(struct Node* x){
+		
+	}
+
 	void print_preorder(struct Node* root){ 
 		if(root==SENTINAL)
 			return;
