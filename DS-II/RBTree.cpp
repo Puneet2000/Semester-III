@@ -24,6 +24,18 @@ public:
 		this->SENTINAL=newNode(-1);
 		this->root=SENTINAL;
 	}
+	~RBTree(){
+		deleteBST(root);
+		free(SENTINAL);
+	}
+
+	void deleteBST(struct Node* root){
+		if (root==SENTINAL)
+			return;
+		deleteBST(root->left);
+		deleteBST(root->right);
+		free(root);
+	}
 
 	void rightRotate(struct Node* found){ // rightRotate 
 		struct Node* y = found->left;
@@ -56,6 +68,21 @@ public:
 			found->parent->left =y;
 		y->left = found;
 		found->parent =y;
+	}
+
+	struct Node* Search(struct Node* root ,int key){  // search a key
+		if (root==SENTINAL)
+			return root;
+		if (root->value == key)  // if found return
+			return root;
+		if(key<root->value)   // search in left subtree
+			return Search(root->left,key);
+		if(key>root->value)   // search in right subtree
+			return Search(root->right,key);
+	}
+
+	struct Node* search(int key){
+		return Search(root,key);
 	}
 
 	void insert(int value){ 
@@ -127,10 +154,10 @@ public:
 
 	struct Node* minimum(struct Node* root){
 		struct Node* temp = root;
-		if (root == NULL)
+		if (root == SENTINAL)
 			return root;
 
-		while(temp->left != NULL){ 
+		while(temp->left != SENTINAL){ 
 			temp = temp->left;
 		}
 		return temp;
@@ -148,16 +175,17 @@ public:
 	void Delete(struct Node* z){
 		struct Node* y = z;
 		int orignal_color = y->colour;
+		struct Node* x = SENTINAL;
 		if (z->left == SENTINAL){
 			x = z->right;
 			transplant(z,z->right);
 		}
-		else if(z-right == SENTINAL){
+		else if(z->right == SENTINAL){
 			x = z->left;
 			transplant(z,z->left);
 		}
 		else{
-			y = minimum(z->z-right);
+			y = minimum(z->right);
 			orignal_color = y->colour;
 			x = y->right;
 			if(y->parent==z)
@@ -177,7 +205,71 @@ public:
 	}
 
 	void delete_fixup(struct Node* x){
+		while (x!=root && x->colour ==1){
+			if (x==x->parent->left){
+				struct Node* w = x->parent->right;
+				if(w->colour==0){
+					w->colour=1;
+					x->parent->colour = 0;
+					leftRotate(x->parent);
+					w  = x->parent->right;
+				}
+
+				if(w->left->colour==1 && w->right->colour==1){
+					w->colour=0;
+					x= x->parent;
+				}
+				else if (w->right->colour==1){
+					w->left->colour=1;
+					w->colour=0;
+					rightRotate(w);
+					w = x->parent->right;
+				}
+
+				w->colour==x->parent->colour;
+				x->parent->colour =1;
+				w->right->colour =1;
+				leftRotate(x->parent);
+				x = root;
+			}
+			else{
+				struct Node* w = x->parent->left;
+				if(w->colour==0){
+					w->colour=1;
+					x->parent->colour = 0;
+					rightRotate(x->parent);
+					w  = x->parent->left;
+				}
+
+				if(w->right->colour==1 && w->left->colour==1){
+					w->colour=0;
+					x= x->parent;
+				}
+				else if (w->left->colour==1){
+					w->right->colour=1;
+					w->colour=0;
+					leftRotate(w);
+					w = x->parent->left;
+				}
+
+				w->colour==x->parent->colour;
+				x->parent->colour =1;
+				w->left->colour =1;
+				rightRotate(x->parent);
+				x = root;
+			}
+			x->colour = 1;
+		}
 		
+	}
+
+	void remove(int k){
+		struct Node* key = search(k);
+		if(key==SENTINAL)
+			return;
+		Delete(key);
+		free(key);
+		key=NULL;
 	}
 
 	void print_preorder(struct Node* root){ 
@@ -196,6 +288,7 @@ public:
 
 	void preorder(){
 		print_preorder(root);
+		cout<<endl;
 	}
 
 };
@@ -209,7 +302,23 @@ int main(){
 	t.insert(5);
 	t.insert(6);
 	t.insert(7);
-	//t.insert(8);
+	t.insert(8);
+	t.preorder();
+	t.remove(2);
+	t.preorder();
+	t.remove(8);
+	t.preorder();
+	t.remove(3);
+	t.preorder();
+	t.remove(5);
+	t.preorder();
+	t.remove(4);
+	t.preorder();
+	t.remove(1);
+	t.preorder();
+	t.remove(7);
+	t.preorder();
+	t.remove(6);
 	t.preorder();
 	return 0;
 }
