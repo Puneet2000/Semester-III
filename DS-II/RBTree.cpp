@@ -1,3 +1,8 @@
+/**
+@author Puneet Mangla
+CS17BTECH11029
+Red-Black Tree
+**/
 #include <bits/stdc++.h> 
 using namespace std;
 struct Node { 
@@ -165,6 +170,17 @@ public:
 		return temp;
 	}
 
+	struct Node* maximum(struct Node* root){
+		struct Node* temp = root;
+		if (root == SENTINAL)
+			return root;
+
+		while(temp->right != SENTINAL){ 
+			temp = temp->right;
+		}
+		return temp;
+	}
+
 	void transplant(struct Node* u , struct Node* v){
 		if (u->parent==SENTINAL)
 			root = v;
@@ -187,19 +203,19 @@ public:
 			transplant(z,z->left);
 		}
 		else{
-			y = minimum(z->right);
+			y = maximum(z->left);
 			orignal_color = y->colour;
-			x = y->right;
+			x = y->left;
 			if(y->parent==z)
 				x->parent=y;
 			else{
-				transplant(y,y->right);
-				y->right = z->right;
-				y->right->parent =y;
+				transplant(y,y->left);
+				y->left = z->left;
+				y->left->parent =y;
 			}
 			transplant(z,y);
-			y->left = z->left;
-			y->left->parent =y;
+			y->right = z->right;
+			y->right->parent =y;
 			y->colour = z->colour;
 		}
 		if (orignal_color==1)
@@ -349,6 +365,20 @@ public:
 		Children(root,key);
 	}
 
+	struct Node* successor(int key){
+		struct Node* temp = root;
+		struct Node* succ = NULL;
+		while(temp!=SENTINAL && temp->value!=key){
+			if (key<temp->value){
+				succ = temp;
+				temp = temp->left;
+			}
+			else temp = temp->right;
+		}
+
+		return succ;
+	}
+
 };
 
 int main(){
@@ -382,6 +412,15 @@ int main(){
 	else if(r=="C"){
 		ss>>r;
 		t.children(stoi(r)); // Children
+	}
+	else if(r==">"){
+		ss>>r;
+		struct Node* succ = t.successor(stoi(r));
+		if(succ==NULL)
+			cout<<"-1\n";
+		else
+			cout<<succ->value<<endl;
+
 	}
 }
 	return 0;
