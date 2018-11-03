@@ -26,7 +26,9 @@ public:
 	}
 	~RBTree(){
 		deleteBST(root);
+		root=NULL;
 		free(SENTINAL);
+		SENTINAL=NULL;
 	}
 
 	void deleteBST(struct Node* root){
@@ -291,34 +293,96 @@ public:
 		cout<<endl;
 	}
 
+	string Path(struct Node* root,int key,string bit){  // search a key
+		// string bit stores the bit path if exits else -1
+		if (root==SENTINAL){
+			bit = "-1"; 
+			return bit;
+		}
+		if ((root->value) == key) {
+			if(root->colour==1)
+				bit+=" B";
+			else
+				bit+=" R";
+			return bit;		
+		}
+		if(key>=(root->value))  { // search in right subtree
+			bit+="1";
+			return Path(root->right,key,bit);
+		}
+		else{ 
+			bit+="0";
+			return Path(root->left,key,bit);
+		}
+	}
+
+	string path(int key)
+	{
+		return Path(root,key,"");
+	}
+
+	void Children(struct Node* root,int key){ // childeren of node
+		struct Node* found = search(key);
+		if(found==SENTINAL)  // no node exists
+			cout<<"-1\n";
+		else{
+			if(found->left!=SENTINAL){
+				cout<<found->left->value<<" "; // print left childern
+				if (found->left->colour==1)
+					cout<<"B ";
+				else cout<<"R ";
+			}
+			else
+				cout<<"L B ";
+			if(found->right!=SENTINAL){
+				cout<<found->right->value<<" "; // print right children
+				if (found->right->colour==1)
+					cout<<"B\n";
+				else cout<<"R\n";
+			}
+			else
+				cout<<"L B\n";
+		}
+	}
+
+	void children(int key){
+		Children(root,key);
+	}
+
 };
 
 int main(){
 	RBTree t;
-	t.insert(1);
-	t.insert(2);
-	t.insert(3);
-	t.insert(4);
-	t.insert(5);
-	t.insert(6);
-	t.insert(7);
-	t.insert(8);
-	t.preorder();
-	t.remove(2);
-	t.preorder();
-	t.remove(8);
-	t.preorder();
-	t.remove(3);
-	t.preorder();
-	t.remove(5);
-	t.preorder();
-	t.remove(4);
-	t.preorder();
-	t.remove(1);
-	t.preorder();
-	t.remove(7);
-	t.preorder();
-	t.remove(6);
-	t.preorder();
+	string s;
+	while(getline(cin,s)){ // accept input
+	string r;
+	stringstream ss(s); // split into words
+	ss >> r;
+	if (r=="N"){ // new BST
+		(&t)->~RBTree();
+		new (&t) RBTree();
+		while(ss >> r)
+			t.insert(stoi(r));	// insert in new BST		
+	}
+	else if(r=="P"){
+		t.preorder(); // preorder
+	}
+	else if(r=="S"){
+		ss>>r;
+		cout<<t.path(stoi(r))<<endl; // search
+	}
+	else if(r=="+"){
+		ss>>r;
+		t.insert(stoi(r)); 
+	}
+	else if(r=="-"){
+		ss>>r;
+		t.remove(stoi(r)); // delete
+	}	
+	else if(r=="C"){
+		ss>>r;
+		t.children(stoi(r)); // Children
+	}
+}
 	return 0;
 }
