@@ -5,7 +5,7 @@ Red-Black Tree
 **/
 #include <bits/stdc++.h> 
 using namespace std;
-struct Node { 
+struct Node { // Node for RBTree
 	int value;
 	struct Node* left;
 	struct Node* right;
@@ -13,7 +13,7 @@ struct Node {
 	int colour;
 };
 
-struct Node* newNode(int value){
+struct Node* newNode(int value){ //  new RBTree Node allocation
 	struct Node* newnode = (struct Node*)malloc(sizeof(struct Node));
 	newnode->value = value;
 	newnode->left = newnode->right = newnode->parent = NULL;
@@ -21,22 +21,22 @@ struct Node* newNode(int value){
 	return newnode;
 }
 
-class RBTree{
-	struct Node* root;
-	struct Node* SENTINAL;
+class RBTree{ // CLass RBTree
+	struct Node* root; // root of RBTree
+	struct Node* SENTINAL; // SENTINAL Node
 public:
 	RBTree(){
-		this->SENTINAL=newNode(-1);
-		this->root=SENTINAL;
+		this->SENTINAL=newNode(-1); // allocating SENTINAL Node
+		this->root=SENTINAL; // initialise root as SENTINAL
 	}
 	~RBTree(){
-		deleteBST(root);
-		root=NULL;
-		free(SENTINAL);
+		deleteBST(root); // delete BST function from previous assignment
+		root=NULL; // root = NULL
+		free(SENTINAL); // free SENTINAL Node
 		SENTINAL=NULL;
 	}
 
-	void deleteBST(struct Node* root){
+	void deleteBST(struct Node* root){ // delete RBTree using Post order traversal
 		if (root==SENTINAL)
 			return;
 		deleteBST(root->left);
@@ -61,7 +61,7 @@ public:
 		
 	}
 
-	struct Node* leftRotate(struct Node* found){
+	struct Node* leftRotate(struct Node* found){ // same as rightRotate
 		struct Node* y = found->right;
 		found->right = y->left;
 		if (y->left!=SENTINAL)
@@ -96,14 +96,14 @@ public:
 		struct Node* z = newNode(value);
 		struct Node* y = SENTINAL;
 		struct Node* x = root;
-		while(x!=SENTINAL){
+		while(x!=SENTINAL){ // iterative insert 
 			y=x;
 			if(z->value<x->value)
-				x = x->left;
+				x = x->left; // go in left subtree
 			else
-				x = x->right;
+				x = x->right; // go in right subtree
 		}
-		z->parent = y;
+		z->parent = y; // insert the node
 		if (y==SENTINAL)
 			root = z;
 		else if (z->value<y->value)
@@ -111,33 +111,33 @@ public:
 		else
 			y->right = z;
 
-		z->left = SENTINAL;
+		z->left = SENTINAL; // assign child as sentinal
 		z->right = SENTINAL;
-		z->colour = 0;
-		insert_fixup(z);
+		z->colour = 0; // assign red to node
+		insert_fixup(z); // call fixup
 	}
 
 	void insert_fixup(struct Node* z){
-		while(z->parent->colour==0){
+		while(z->parent->colour==0){ // do until node is RED
 			if (z->parent == z->parent->parent->left){
 				struct Node* y = z->parent->parent->right;
-				if(y->colour==0){
+				if(y->colour==0){ //  z’s uncle y is red
 					z->parent->colour =1;
 					y->colour =1;
 					z->parent->parent->colour = 0;
 					z = z->parent->parent;
 				}
 				else {
-					if(z==z->parent->right){
+					if(z==z->parent->right){ //  z’s uncle y is black and  z is a right child
 						z= z->parent;
 						leftRotate(z);
 					}
-					z->parent->colour=1;
+					z->parent->colour=1; //  z’s uncle y is black and  z is a left child
 					z->parent->parent->colour = 0;
 					rightRotate(z->parent->parent);
 				}
 			}
-			else{
+			else{ // same as previous if statement
 				struct Node* y = z->parent->parent->left;
 				if(y->colour==0){
 					z->parent->colour =1;
@@ -156,7 +156,7 @@ public:
 				}
 			}
 		}
-		root->colour=1;
+		root->colour=1; // assign root as BLACK
 	}
 
 	struct Node* minimum(struct Node* root){
@@ -170,7 +170,7 @@ public:
 		return temp;
 	}
 
-	struct Node* maximum(struct Node* root){
+	struct Node* maximum(struct Node* root){ // go to left subtree until SENTINAL is achieved
 		struct Node* temp = root;
 		if (root == SENTINAL)
 			return root;
@@ -181,7 +181,7 @@ public:
 		return temp;
 	}
 
-	void transplant(struct Node* u , struct Node* v){
+	void transplant(struct Node* u , struct Node* v){ // 
 		if (u->parent==SENTINAL)
 			root = v;
 		else if(u==u->parent->left)
@@ -194,16 +194,16 @@ public:
 		struct Node* y = z;
 		int orignal_color = y->colour;
 		struct Node* x = SENTINAL;
-		if (z->left == SENTINAL){
+		if (z->left == SENTINAL){ // only right child
 			x = z->right;
 			transplant(z,z->right);
 		}
-		else if(z->right == SENTINAL){
+		else if(z->right == SENTINAL){ // only left child
 			x = z->left;
 			transplant(z,z->left);
 		}
-		else{
-			y = maximum(z->left);
+		else{ // both children
+			y = maximum(z->left); // find predecessor
 			orignal_color = y->colour;
 			x = y->left;
 			if(y->parent==z)
@@ -213,44 +213,46 @@ public:
 				y->left = z->left;
 				y->left->parent =y;
 			}
-			transplant(z,y);
+			transplant(z,y); // replace by predecessor
 			y->right = z->right;
 			y->right->parent =y;
 			y->colour = z->colour;
 		}
 		if (orignal_color==1)
-			delete_fixup(x);
+			delete_fixup(x); // call delete fixup
 	}
 
 	void delete_fixup(struct Node* x){
 		while (x!=root && x->colour ==1){
 			if (x==x->parent->left){
 				struct Node* w = x->parent->right;
-				if(w->colour==0){
+				if(w->colour==0){ // x’s sibling w is red
 					w->colour=1;
 					x->parent->colour = 0;
 					leftRotate(x->parent);
 					w  = x->parent->right;
 				}
 
-				if(w->left->colour==1 && w->right->colour==1){
+				if(w->left->colour==1 && w->right->colour==1){ // x’s sibling w is black, and both of w’s children are black
 					w->colour=0;
 					x= x->parent;
 				}
-				else if (w->right->colour==1){
-					w->left->colour=1;
-					w->colour=0;
-					rightRotate(w);
-					w = x->parent->right;
-				}
+				else {
+					if (w->right->colour==1){ // x’s sibling w is black, w’s left child is red, and w’s right child is black
+						w->left->colour=1;
+						w->colour=0;
+						rightRotate(w);
+						w = x->parent->right;
+					}
 
-				w->colour==x->parent->colour;
-				x->parent->colour =1;
-				w->right->colour =1;
-				leftRotate(x->parent);
-				x = root;
+					w->colour==x->parent->colour; // x’s sibling w is black, and w’s right child is red
+					x->parent->colour =1;
+					w->right->colour =1;
+					leftRotate(x->parent);
+					x = root;
+				}
 			}
-			else{
+			else{ // same as previous if
 				struct Node* w = x->parent->left;
 				if(w->colour==0){
 					w->colour=1;
@@ -263,25 +265,28 @@ public:
 					w->colour=0;
 					x= x->parent;
 				}
-				else if (w->left->colour==1){
-					w->right->colour=1;
-					w->colour=0;
-					leftRotate(w);
-					w = x->parent->left;
-				}
+				else {
+					if (w->left->colour==1){
+						w->right->colour=1;
+						w->colour=0;
+						leftRotate(w);
+						w = x->parent->left;
+					}
 
-				w->colour==x->parent->colour;
-				x->parent->colour =1;
-				w->left->colour =1;
-				rightRotate(x->parent);
-				x = root;
+					w->colour==x->parent->colour;
+					x->parent->colour =1;
+					w->left->colour =1;
+					rightRotate(x->parent);
+					x = root;
+				}
 			}
-			x->colour = 1;
+			
 		}
+		x->colour = 1;
 		
 	}
 
-	void remove(int k){
+	void remove(int k){ // call Delete if key exists
 		struct Node* key = search(k);
 		if(key==SENTINAL)
 			return;
@@ -290,7 +295,7 @@ public:
 		key=NULL;
 	}
 
-	void print_preorder(struct Node* root){ 
+	void print_preorder(struct Node* root){ // Preorder Traversal VLR
 		if(root==SENTINAL)
 			return;
 		cout<<root->value;
@@ -317,9 +322,9 @@ public:
 		}
 		if ((root->value) == key) {
 			if(root->colour==1)
-				bit+=" B";
+				bit+=" B"; // if colour is BLACK
 			else
-				bit+=" R";
+				bit+=" R"; // if colur id RED
 			return bit;		
 		}
 		if(key>=(root->value))  { // search in right subtree
@@ -349,7 +354,7 @@ public:
 				else cout<<"R ";
 			}
 			else
-				cout<<"L B ";
+				cout<<"L B "; // SENTINAL
 			if(found->right!=SENTINAL){
 				cout<<found->right->value<<" "; // print right children
 				if (found->right->colour==1)
@@ -365,19 +370,39 @@ public:
 		Children(root,key);
 	}
 
-	struct Node* successor(int key){
-		struct Node* temp = root;
-		struct Node* succ = NULL;
-		while(temp!=SENTINAL && temp->value!=key){
-			if (key<temp->value){
-				succ = temp;
-				temp = temp->left;
-			}
-			else temp = temp->right;
+	struct Node* Successor(struct Node* keynode){
+		if(keynode->right !=SENTINAL){ // find minimum in right subtree
+			return minimum(keynode->right);
 		}
 
-		return succ;
+		struct Node* temp = keynode;
+		while(temp->parent != SENTINAL){ // use parent pointers to find succesor
+			if (temp->parent->left == temp)
+				break;
+			temp = temp->parent;
+		}
+		return temp->parent;
 	}
+
+	struct Node* successor(int key){
+		struct Node* temp = root;
+		struct Node* p = SENTINAL; 
+		while(temp!=SENTINAL && temp->value!=key){ 
+			p = temp;
+			if(key<temp->value)
+				temp= temp->left;
+			else
+				temp = temp->right;
+		}
+
+		if(temp!=SENTINAL && temp->value==key)
+			return Successor(temp); // if key exists
+		else if (p->value > key)
+			return p;
+		else
+			return Successor(p); // else call successor of parent from which SENTINAL is achieved
+	}
+
 
 };
 
@@ -388,7 +413,7 @@ int main(){
 	string r;
 	stringstream ss(s); // split into words
 	ss >> r;
-	if (r=="N"){ // new BST
+	if (r=="N"){ // new RBTree
 		(&t)->~RBTree();
 		new (&t) RBTree();
 		while(ss >> r)
@@ -403,7 +428,7 @@ int main(){
 	}
 	else if(r=="+"){
 		ss>>r;
-		t.insert(stoi(r)); 
+		t.insert(stoi(r));  // insert
 	}
 	else if(r=="-"){
 		ss>>r;
@@ -413,7 +438,7 @@ int main(){
 		ss>>r;
 		t.children(stoi(r)); // Children
 	}
-	else if(r==">"){
+	else if(r==">"){ // successor
 		ss>>r;
 		struct Node* succ = t.successor(stoi(r));
 		if(succ==NULL)
