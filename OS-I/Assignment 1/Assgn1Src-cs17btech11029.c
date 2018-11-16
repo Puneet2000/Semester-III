@@ -57,17 +57,19 @@ int main(int argc , char* argv[]){
 	}
 	else{
 		int status=0;
+		char* name = "OS"; // name of the shared memory
 		wait(&status); // wait for the child process to terminate
 
-		if (status==-1){
+		if (status!=0){
 			printf("Error executing the command ( check if command entered is correct )\n");
+			shm_unlink(name); // unlink or destory shared memory
 			return 1;
 		}
 
 		struct timeval after_execution; // structure storing after execution timestamp in address space of parent
 		gettimeofday(&after_execution,NULL); // get after execution timestamp
 
-		char* name = "OS"; // name of the shared memory
+		
 		int shm_fd; // file discriptor to shared memory
 
 		struct timeval* before_execution; // get before execution time of command
