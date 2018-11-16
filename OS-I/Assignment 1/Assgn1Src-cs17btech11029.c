@@ -20,6 +20,11 @@ forking and shared memory
 
 int main(int argc , char* argv[]){
 
+	if (argc<2){ // if no command is specified then show error that arguments too less
+		printf("Too less arguments !\n");
+		return 1;
+	}
+
 	char* command[argc]; // command to be executed
 	int i;
 	for (i = 0; i < argc-1; i++){ // filling in command array with commands
@@ -48,10 +53,16 @@ int main(int argc , char* argv[]){
 
 		gettimeofday(before_execution,NULL); // store before execution timestamp
 		execvp(command[0],command); // execute the command
+
 	}
 	else{
+		int status=0;
+		wait(&status); // wait for the child process to terminate
 
-		wait(NULL); // wait for the child process to terminate
+		if (status==-1){
+			printf("Error executing the command ( check if command entered is correct )\n");
+			return 1;
+		}
 
 		struct timeval after_execution; // structure storing after execution timestamp in address space of parent
 		gettimeofday(&after_execution,NULL); // get after execution timestamp
