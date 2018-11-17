@@ -1,4 +1,4 @@
-# Semester III (Assignments of courses offered in IITH during semester 3)
+# Semester III (Practice and Homework Assignments)
 
 **CS2233 (Data Structures)**
 - Linked Lists / Stacks and Queues
